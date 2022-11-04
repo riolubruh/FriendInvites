@@ -39,7 +39,7 @@ module.exports = (() => {
 				"github_username": "riolubruh"
 			}],
 			"version": "0.0.1",
-			"description": "Create, send, and delete Friend Links. Inspired by spinfal's Enmity plugin. /friendinvites",
+			"description": "Create Friend Invites",
 			"github": "https://github.com/riolubruh/FriendInvites",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/FriendInvites/main/FriendInvites.plugin.js"
 		},
@@ -90,14 +90,17 @@ module.exports = (() => {
 				friendInvites(){
 					let currentChannelGlobal = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId();
 					let friendInvitesModule = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("createFriendInvite"));
-					BdApi.Patcher.instead("FriendInvites", DiscordModules.MessageActions, "sendMessage", (_, [channelId, msg]) => {
-						if(msg.content === undefined || channelId === null){
+					BdApi.Patcher.instead("FriendInvites", DiscordModules.MessageActions, "sendMessage", (_, b, send) => {
+						//this function is to simplify the process of cancelling a message
+						if(b[1].content === undefined || b[1].content === null || b[1].content == ""){
 							return
 						}
+						send(b[0], b[1], b[2], b[3]);
 						});
 					BdApi.Patcher.before("FriendInvites", DiscordModules.MessageActions, "sendMessage", (_, [channelId, msg]) => {
 						if(msg.content.toLowerCase().startsWith("/friendinvites create")){
 							let newFriendInvite = friendInvitesModule.createFriendInvite().then(function(e){
+								console.log(e);
 								inviteList = "Invite URL: discord.gg/ " + e.code + "\nExpires: " + e.expires_at + "\nUses: " + e.uses + "/" + e.max_uses;
 								DiscordModules.MessageActions.sendBotMessage(currentChannelGlobal, inviteList);
 							});	
@@ -107,7 +110,7 @@ module.exports = (() => {
 						}
 						
 						if(msg.content.toLowerCase().startsWith("/friendinvites revoke") || msg.content.toLowerCase().startsWith("/friendinvites delete") || msg.content.toLowerCase().startsWith("/friendinvites deleteall") || msg.content.toLowerCase().startsWith("/friendinvites revokeall")){
-							console.log(friendInvitesModule.revokeFriendInvites());
+							friendInvitesModule.revokeFriendInvites();
 							DiscordModules.MessageActions.sendBotMessage(currentChannelGlobal, "Deleted all friend invites.");
 							channelId = undefined;
 							msg.content = undefined;
@@ -116,7 +119,6 @@ module.exports = (() => {
 						if(msg.content.toLowerCase().startsWith("/friendinvites list")){
 							var inviteList = "";
 							friendInvitesModule.getAllFriendInvites().then(function(result){result.forEach(function (e){
-								
 								inviteList = "Invite URL: discord.gg/ " + e.code + "\nExpires: " + e.expires_at + "\nUses: " + e.uses + "/" + e.max_uses;
 								DiscordModules.MessageActions.sendBotMessage(currentChannelGlobal, inviteList);
 							})});
@@ -142,7 +144,7 @@ module.exports = (() => {
 				}
 
 				onStop() {
-					BdApi.Patcher.unpatchAll("FriendInvites")
+					BdApi.Patcher.unpatchAll("FriendInvites");
 				}
 			};
 		};
