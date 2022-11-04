@@ -91,11 +91,11 @@ module.exports = (() => {
 					let currentChannelGlobal = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId();
 					let friendInvitesModule = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("createFriendInvite"));
 					BdApi.Patcher.instead("FriendInvites", DiscordModules.MessageActions, "sendMessage", (_, b, send) => {
-						//this function is to simplify the process of cancelling a message
+						//this function is to cancel a message
 						if(b[1].content === undefined || b[1].content === null || b[1].content == ""){
 							return
 						}
-						send(b[0], b[1], b[2], b[3]);
+						send(b[0], b[1], b[2], b[3])
 						});
 					BdApi.Patcher.before("FriendInvites", DiscordModules.MessageActions, "sendMessage", (_, [channelId, msg]) => {
 						if(msg.content.toLowerCase().startsWith("/friendinvites create")){
