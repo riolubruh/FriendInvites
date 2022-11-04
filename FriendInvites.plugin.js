@@ -99,8 +99,8 @@ module.exports = (() => {
 						});
 					BdApi.Patcher.before("FriendInvites", DiscordModules.MessageActions, "sendMessage", (_, [channelId, msg]) => {
 						if(msg.content.toLowerCase().startsWith("/friendinvites create")){
+							//Create friend link
 							let newFriendInvite = friendInvitesModule.createFriendInvite().then(function(e){
-								console.log(e);
 								inviteList = "Invite URL: discord.gg/ " + e.code + "\nExpires: " + e.expires_at + "\nUses: " + e.uses + "/" + e.max_uses;
 								DiscordModules.MessageActions.sendBotMessage(currentChannelGlobal, inviteList);
 							});	
@@ -110,6 +110,7 @@ module.exports = (() => {
 						}
 						
 						if(msg.content.toLowerCase().startsWith("/friendinvites revoke") || msg.content.toLowerCase().startsWith("/friendinvites delete") || msg.content.toLowerCase().startsWith("/friendinvites deleteall") || msg.content.toLowerCase().startsWith("/friendinvites revokeall")){
+							//Delete all friend links
 							friendInvitesModule.revokeFriendInvites();
 							DiscordModules.MessageActions.sendBotMessage(currentChannelGlobal, "Deleted all friend invites.");
 							channelId = undefined;
@@ -117,6 +118,7 @@ module.exports = (() => {
 							return
 						}
 						if(msg.content.toLowerCase().startsWith("/friendinvites list")){
+							//List active friend links
 							var inviteList = "";
 							friendInvitesModule.getAllFriendInvites().then(function(result){result.forEach(function (e){
 								inviteList = "Invite URL: discord.gg/ " + e.code + "\nExpires: " + e.expires_at + "\nUses: " + e.uses + "/" + e.max_uses;
@@ -130,6 +132,7 @@ module.exports = (() => {
 							return
 						}
 						if(msg.content.toLowerCase().startsWith("/friendinvites")){
+							//Help command
 							DiscordModules.MessageActions.sendBotMessage(channelId, "Command List:\n/friendinvites create\n/friendinvites revoke\n/friendinvites list");
 							channelId = undefined;
 							msg.content = undefined;
