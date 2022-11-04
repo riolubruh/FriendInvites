@@ -18,3 +18,7 @@ Type commands into chat to perform certain actions
 /friendinvites revoke -- Deletes all existing Friend Links
 
 /friendinvites list -- Lists all currently active Friend Links
+
+## IF YOU ARE USING YABDP4Nitro
+
+Disable Upload Emotes while using this plugin. I simply haven't gotten around to fixing this yet.
