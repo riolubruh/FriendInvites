@@ -1,7 +1,7 @@
 /**
  * @name FriendInvites
  * @author Riolubruh
- * @version 0.0.1
+ * @version 0.1.0
  * @source https://github.com/riolubruh/FriendInvites
  * @updateUrl https://raw.githubusercontent.com/riolubruh/FriendInvites/main/FriendInvites.plugin.js
  */
@@ -38,8 +38,8 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "0.0.1",
-			"description": "Create Friend Invites",
+			"version": "0.1.0",
+			"description": "Create Friend Links. Inspired by spinfal's Enmity plugin. /friendinvites",
 			"github": "https://github.com/riolubruh/FriendInvites",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/FriendInvites/main/FriendInvites.plugin.js"
 		},
@@ -89,15 +89,89 @@ module.exports = (() => {
 				
 				friendInvites(){
 					let currentChannelGlobal = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId();
-					let friendInvitesModule = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("createFriendInvite"));
-					BdApi.Patcher.instead("FriendInvites", DiscordModules.MessageActions, "sendMessage", (_, b, send) => {
-						//this function is to cancel a message
-						if(b[1].content === undefined || b[1].content === null || b[1].content == ""){
-							return
-						}
-						send(b[0], b[1], b[2], b[3])
+					const friendInvitesModule = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("createFriendInvite"));
+					const SlashCommandStore = ZLibrary.WebpackModules.getModule(
+						(m) => m?.Kh?.toString?.()?.includes?.("BUILT_IN_TEXT")
+					);
+					try{
+						BdApi.Patcher.after("FriendInvites", SlashCommandStore, "Kh", (_, args, res) => {
+						  if (args[0] !== 1) return;
+						  res.push({
+							applicationId: "-1",
+							name: "friendinvites",
+							displayName: "friendinvites",
+							displayDescription: "List all friendinvites commands",
+							description: "List commands",
+							id: (-1 - res.length).toString(),
+							type: 1,
+							target: 1,
+							options: [],
+							execute: () => {
+								//Help command
+								DiscordModules.MessageActions.sendBotMessage(currentChannelGlobal, "Command List:\n/friendinvites create\n/friendinvites revoke\n/friendinvites list");
+							}
+						  },{
+							applicationId: "-1",
+							name: "friendinvites create",
+							displayName: "friendinvites create",
+							displayDescription: "Create a friend invite",
+							description: "Create a friend invite",
+							id: (-1 - res.length).toString(),
+							type: 1,
+							target: 1,
+							options: [],
+							execute: () => {
+								//Create friend link
+								let newFriendInvite = friendInvitesModule.createFriendInvite().then(function(e){
+									inviteList = "Invite URL: discord.gg/ " + e.code + "\nExpires: " + e.expires_at + "\nUses: " + e.uses + "/" + e.max_uses;
+									DiscordModules.MessageActions.sendBotMessage(currentChannelGlobal, inviteList);
+								});
+								return
+							}
+						  },{
+							applicationId: "-1",
+							name: "friendinvites revoke",
+							displayName: "friendinvites revoke",
+							displayDescription: "Delete all active friend invites",
+							description: "Delete all active friend invites",
+							id: (-1 - res.length).toString(),
+							type: 1,
+							target: 1,
+							options: [],
+							execute: () => {
+								//Delete all friend links
+								friendInvitesModule.revokeFriendInvites();
+								DiscordModules.MessageActions.sendBotMessage(currentChannelGlobal, "Deleted all friend invites.");
+								return
+							}
+						  },{
+							applicationId: "-1",
+							name: "friendinvites list",
+							displayName: "friendinvites list",
+							displayDescription: "List all active friend invites",
+							description: "List all active friend invites",
+							id: (-1 - res.length).toString(),
+							type: 1,
+							target: 1,
+							options: [],
+							execute: () => {
+								//List active friend links
+								var inviteList = "";
+								friendInvitesModule.getAllFriendInvites().then(function(result){result.forEach(function (e){
+									inviteList = "Invite URL: discord.gg/ " + e.code + "\nExpires: " + e.expires_at + "\nUses: " + e.uses + "/" + e.max_uses;
+									DiscordModules.MessageActions.sendBotMessage(currentChannelGlobal, inviteList);
+								})});
+								friendInvitesModule.getAllFriendInvites().then(function(result){
+									if(result.length == 0) DiscordModules.MessageActions.sendBotMessage(currentChannelGlobal, "No invites");
+								});
+								return
+							}
+						  });
 						});
-					BdApi.Patcher.before("FriendInvites", DiscordModules.MessageActions, "sendMessage", (_, [channelId, msg]) => {
+					}catch(err){
+						console.error(err);
+						console.log("Using fallback method");
+						BdApi.Patcher.before("FriendInvites", DiscordModules.MessageActions, "sendMessage", (_, [channelId, msg]) => {
 						if(msg.content.toLowerCase().startsWith("/friendinvites create")){
 							//Create friend link
 							let newFriendInvite = friendInvitesModule.createFriendInvite().then(function(e){
@@ -108,7 +182,6 @@ module.exports = (() => {
 							msg.content = undefined;
 							return
 						}
-						
 						if(msg.content.toLowerCase().startsWith("/friendinvites revoke") || msg.content.toLowerCase().startsWith("/friendinvites delete") || msg.content.toLowerCase().startsWith("/friendinvites deleteall") || msg.content.toLowerCase().startsWith("/friendinvites revokeall")){
 							//Delete all friend links
 							friendInvitesModule.revokeFriendInvites();
@@ -133,12 +206,13 @@ module.exports = (() => {
 						}
 						if(msg.content.toLowerCase().startsWith("/friendinvites")){
 							//Help command
-							DiscordModules.MessageActions.sendBotMessage(channelId, "Command List:\n/friendinvites create\n/friendinvites revoke\n/friendinvites list");
+							DiscordModules.MessageActions.sendBotMessage(currentChannelGlobal, "Command List:\n/friendinvites create\n/friendinvites revoke\n/friendinvites list");
 							channelId = undefined;
 							msg.content = undefined;
 							return
 						}
 						});
+					}
 				}
 				
 				
