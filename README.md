@@ -1,5 +1,5 @@
 # FriendInvites (Beta)
-Create, send, and delete Friend Links on Discord. Inspired by spinfal's Enmity plugin of the same name.
+Create, send, and delete Friend Links on Discord. Inspired by [spinfal's Enmity plugin](https://github.com/spinfal/enmity-plugins) of the same name.
 
 ## What are Friend Links?
 
