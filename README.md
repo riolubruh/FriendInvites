@@ -18,3 +18,5 @@ Type commands into chat to perform certain actions
 /friendinvites revoke -- Deletes all existing Friend Links
 
 /friendinvites list -- Lists all currently active Friend Links
+
+Yes, there are other plugins that do exactly the same thing as this.
