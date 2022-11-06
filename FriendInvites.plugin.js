@@ -1,7 +1,7 @@
 /**
  * @name FriendInvites
  * @author Riolubruh
- * @version 0.1.0
+ * @version 0.1.1
  * @source https://github.com/riolubruh/FriendInvites
  * @updateUrl https://raw.githubusercontent.com/riolubruh/FriendInvites/main/FriendInvites.plugin.js
  */
@@ -38,8 +38,8 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "0.1.0",
-			"description": "Create Friend Links. Inspired by spinfal's Enmity plugin. /friendinvites",
+			"version": "0.1.1",
+			"description": "Create and delete Friend Links! Inspired by spinfal's Enmity plugin. /friendinvites",
 			"github": "https://github.com/riolubruh/FriendInvites",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/FriendInvites/main/FriendInvites.plugin.js"
 		},
@@ -88,7 +88,7 @@ module.exports = (() => {
 			return class FriendInvites extends Plugin {
 				
 				friendInvites(){
-					let currentChannelGlobal = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId();
+					var currentChannelGlobal = BdApi.findModuleByProps("getChannelId","getCurrentlySelectedChannelId").getChannelId();
 					const friendInvitesModule = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("createFriendInvite"));
 					const SlashCommandStore = ZLibrary.WebpackModules.getModule(
 						(m) => m?.Kh?.toString?.()?.includes?.("BUILT_IN_TEXT")
@@ -159,7 +159,7 @@ module.exports = (() => {
 								var inviteList = "";
 								friendInvitesModule.getAllFriendInvites().then(function(result){result.forEach(function (e){
 									inviteList = "Invite URL: discord.gg/ " + e.code + "\nExpires: " + e.expires_at + "\nUses: " + e.uses + "/" + e.max_uses;
-									DiscordModules.MessageActions.sendBotMessage(currentChannelGlobal, inviteList);
+									setTimeout(() => {  DiscordModules.MessageActions.sendBotMessage(currentChannelGlobal, inviteList) }, 300);
 								})});
 								friendInvitesModule.getAllFriendInvites().then(function(result){
 									if(result.length == 0) DiscordModules.MessageActions.sendBotMessage(currentChannelGlobal, "No invites");
@@ -170,7 +170,7 @@ module.exports = (() => {
 						});
 					}catch(err){
 						console.error(err);
-						console.log("Using fallback method");
+						console.warn("[FriendInvites] Using fallback method");
 						BdApi.Patcher.before("FriendInvites", DiscordModules.MessageActions, "sendMessage", (_, [channelId, msg]) => {
 						if(msg.content.toLowerCase().startsWith("/friendinvites create")){
 							//Create friend link
